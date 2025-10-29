@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Interactive Form Validation — Red • Blue • White Theme</title>
+  <style>
+    :root{
+      --red: #e63946;
+      --blue: #1d4ed8; /* deep blue */
+      --white: #ffffff;
+      --muted: #6b7280;
+      --bg: #f8fafc;
+      --radius: 12px;
+      --shadow: 0 8px 24px rgba(16,24,40,0.08);
+      --success: #16a34a;
+      --danger: #dc2626;
+    }
+
+    /* Reset-ish */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background: linear-gradient(180deg, var(--bg), #ffffff);
+      color:#111827;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:32px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .card{
+      width:100%;
+      max-width:920px;
+      background:var(--white);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+    }
+
+    /* Left panel with brand */
+    .panel{
+      padding:28px;
+      background:linear-gradient(180deg, rgba(29,78,216,0.06), rgba(230,57,70,0.04));
+      border-right:1px solid rgba(15,23,42,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      align-items:flex-start;
+      justify-content:center;
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:12px;
+    }
+    .logo{
+      width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--red),var(--blue));
+      display:flex;align-items:center;justify-content:center;color:var(--white);font-weight:700;font-size:20px;box-shadow:0 6px 18px rgba(29,78,216,0.12);
+    }
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted)}
+
+    /* Right: form area */
+    .form-wrap{padding:28px 32px}
+    form{display:grid;gap:12px}
+
+    .row{display:flex;gap:12px}
+    .col{flex:1;min-width:0}
+
+    label{display:block;font-size:13px;margin-bottom:6px}
+    input[type="text"],input[type="email"],input[type="password"],input[type="tel"],input[type="date"],select,textarea{
+      width:100%;padding:12px 14px;border-radius:10px;border:1px solid #e6e9f2;background:#fff;font-size:14px;outline:none;transition:all .15s;
+    }
+    input:focus{box-shadow:0 4px 14px rgba(29,78,216,0.08);transform:translateY(-1px);border-color:rgba(29,78,216,0.6)}
+
+    .hint{font-size:12px;color:var(--muted)}
+    .error{color:var(--danger);font-size:13px;margin-top:6px}
+    .success{color:var(--success);font-size:13px;margin-top:6px}
+
+    .field-inline{display:flex;align-items:center;gap:8px}
+    .pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(15,23,42,0.06);font-size:12px}
+
+    .submit-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+    button[type="submit"]{
+      background:linear-gradient(90deg,var(--blue),var(--red));color:var(--white);border:none;padding:12px 18px;border-radius:10px;font-weight:600;cursor:pointer;box-shadow:0 8px 20px rgba(230,57,70,0.12);
+    }
+    button[disabled]{opacity:.6;cursor:not-allowed}
+
+    .small{font-size:13px;color:var(--muted)}
+
+    /* password strength bar */
+    .strength{height:8px;background:#f1f5f9;border-radius:6px;overflow:hidden}
+    .strength > i{display:block;height:100%;width:0%;transition:width .25s}
+
+    .strength.weak > i{width:33%;background:var(--danger)}
+    .strength.medium > i{width:66%;background:orange}
+    .strength.strong > i{width:100%;background:var(--success)}
+
+    /* responsive */
+    @media (max-width:880px){
+      .card{grid-template-columns:1fr;}
+      .panel{order:2;flex-direction:row;justify-content:space-between;padding:18px}
+      .form-wrap{order:1}
+    }
+
+    /* accessible focus ring */
+    :focus{outline:2px solid rgba(29,78,216,0.12);outline-offset:2px}
+
+    /* tiny success toast */
+    .toast{position:fixed;right:20px;bottom:20px;background:linear-gradient(90deg,var(--blue),var(--red));color:var(--white);padding:12px 16px;border-radius:12px;box-shadow:0 12px 36px rgba(15,23,42,0.18);display:none}
+    .toast.show{display:block;animation:pop .28s ease}
+    @keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+  </style>
+</head>
+<body>
+  <div class="card" role="region" aria-label="Interactive sign-up form">
+    <aside class="panel">
+      <div class="brand">
+        <div class="logo">IF</div>
+        <div>
+          <h1>Interactive Form</h1>
+          <p class="lead">Clean, accessible validation — theme: red • blue • white</p>
+        </div>
+      </div>
+
+      <div class="pill">Real-time validation</div>
+      <div class="pill">Accessible ARIA feedback</div>
+      <div class="pill">Responsive & lightweight</div>
+    </aside>
+
+    <section class="form-wrap">
+      <h2 style="margin:0 0 6px 0">Create your account</h2>
+      <p class="small">We validate as you type. Fix errors before you submit.</p>
+
+      <form id="signup" novalidate>
+        <div class="row">
+          <div class="col">
+            <label for="first">First name</label>
+            <input id="first" name="first" type="text" autocomplete="given-name" required aria-required="true" aria-describedby="first-err" />
+            <div id="first-err" class="error" aria-live="polite"></div>
+          </div>
+
+          <div class="col">
+            <label for="last">Last name</label>
+            <input id="last" name="last" type="text" autocomplete="family-name" required aria-required="true" aria-describedby="last-err" />
+            <div id="last-err" class="error" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div>
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-err" />
+          <div id="email-err" class="error" aria-live="polite"></div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="phone">Phone</label>
+            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="e.g. +91 98765 43210" aria-describedby="phone-err" />
+            <div id="phone-err" class="error" aria-live="polite"></div>
+          </div>
+
+          <div class="col">
+            <label for="dob">Date of birth</label>
+            <input id="dob" name="dob" type="date" max="2025-10-12" aria-describedby="dob-err" />
+            <div id="dob-err" class="error" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" required aria-describedby="password-err password-hint" />
+          <div id="password-hint" class="hint">At least 8 characters, mix of letters & numbers</div>
+          <div class="strength" id="strength" aria-hidden="true"><i></i></div>
+          <div id="password-err" class="error" aria-live="polite"></div>
+        </div>
+
+        <div>
+          <label for="confirm">Confirm password</label>
+          <input id="confirm" name="confirm" type="password" autocomplete="new-password" required aria-describedby="confirm-err" />
+          <div id="confirm-err" class="error" aria-live="polite"></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+          <input id="terms" name="terms" type="checkbox" aria-describedby="terms-err" />
+          <label for="terms" class="small">I agree to the <a href="#">terms & conditions</a></label>
+        </div>
+        <div id="terms-err" class="error" aria-live="polite"></div>
+
+        <div class="submit-row">
+          <div class="small">Already have account? <a href="#">Sign in</a></div>
+          <button type="submit" id="submit">Create account</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">Account created ✓</div>
+
+  <script>
+    // Simple but robust front-end validation
+    (function(){
+      const form = document.getElementById('signup');
+      const fields = {
+        first: document.getElementById('first'),
+        last: document.getElementById('last'),
+        email: document.getElementById('email'),
+        phone: document.getElementById('phone'),
+        dob: document.getElementById('dob'),
+        password: document.getElementById('password'),
+        confirm: document.getElementById('confirm'),
+        terms: document.getElementById('terms')
+      };
+
+      // helpers
+      const setError = (el, msg) => { const e = document.getElementById(el.id+'-err'); e.textContent = msg || ''; el.setAttribute('aria-invalid', !!msg); };
+      const clearError = el => setError(el, '');
+
+      // email regex (simple but practical)
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // phone: allow plus, digits, spaces, dashes, length 7-20
+      const phoneRe = /^[+]?([0-9\s-]{7,20})$/;
+
+      // password strength
+      const strengthEl = document.getElementById('strength');
+      const evaluatePw = (pw) => {
+        let score = 0;
+        if (pw.length >= 8) score++;
+        if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw) || /[^A-Za-z0-9]/.test(pw)) score++;
+        if (score <=1) return 'weak';
+        if (score ===2) return 'medium';
+        return 'strong';
+      };
+
+      // live validation handlers
+      fields.first.addEventListener('input', e => {
+        if (!e.target.value.trim()) setError(e.target, 'First name is required'); else clearError(e.target);
+      });
+
+      fields.last.addEventListener('input', e => {
+        if (!e.target.value.trim()) setError(e.target, 'Last name is required'); else clearError(e.target);
+      });
+
+      fields.email.addEventListener('input', e => {
+        const v = e.target.value.trim();
+        if (!v) setError(e.target, 'Email is required');
+        else if (!emailRe.test(v)) setError(e.target, 'Enter a valid email');
+        else clearError(e.target);
+      });
+
+      fields.phone.addEventListener('input', e => {
+        const v = e.target.value.trim();
+        if (!v) { clearError(e.target); return; } // optional
+        if (!phoneRe.test(v)) setError(e.target, 'Enter a valid phone number'); else clearError(e.target);
+      });
+
+      fields.dob.addEventListener('change', e => {
+        if (!e.target.value) { setError(e.target, 'Please select your date of birth'); return; }
+        const selected = new Date(e.target.value);
+        const today = new Date('2025-10-12'); // keep consistent with the max in the markup
+        if (selected >= today) setError(e.target, 'DOB must be in the past'); else clearError(e.target);
+      });
+
+      fields.password.addEventListener('input', e => {
+        const v = e.target.value;
+        const st = evaluatePw(v);
+        strengthEl.classList.remove('weak','medium','strong');
+        strengthEl.classList.add(st);
+
+        if (v.length < 8) setError(e.target, 'Password must be at least 8 characters');
+        else clearError(e.target);
+
+        // re-check confirm
+        if (fields.confirm.value) {
+          if (fields.confirm.value !== v) setError(fields.confirm, 'Passwords do not match');
+          else clearError(fields.confirm);
+        }
+      });
+
+      fields.confirm.addEventListener('input', e => {
+        if (e.target.value !== fields.password.value) setError(e.target, 'Passwords do not match'); else clearError(e.target);
+      });
+
+      // on submit
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        let ok = true;
+
+        // required checks
+        if (!fields.first.value.trim()){ setError(fields.first, 'First name is required'); ok = false }
+        if (!fields.last.value.trim()){ setError(fields.last, 'Last name is required'); ok = false }
+        if (!fields.email.value.trim() || !emailRe.test(fields.email.value.trim())){ setError(fields.email, 'Please enter a valid email'); ok = false }
+        if (fields.phone.value && !phoneRe.test(fields.phone.value.trim())){ setError(fields.phone, 'Enter a valid phone'); ok = false }
+        if (!fields.password.value || fields.password.value.length < 8){ setError(fields.password, 'Password must be at least 8 characters'); ok = false }
+        if (fields.password.value !== fields.confirm.value){ setError(fields.confirm, 'Passwords do not match'); ok = false }
+        if (!fields.terms.checked){ document.getElementById('terms-err').textContent = 'You must agree to terms'; ok = false } else { document.getElementById('terms-err').textContent = '' }
+
+        if (!ok) {
+          // focus the first invalid field
+          const firstInvalid = form.querySelector('[aria-invalid="true"]') || form.querySelector('.error:empty ~ input');
+          if (firstInvalid) firstInvalid.focus();
+          return;
+        }
+
+        // fake submission — show success toast and reset (in real app, send to server)
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(()=>toast.classList.remove('show'), 3000);
+
+        // clear form but keep essential choices
+        form.reset();
+        strengthEl.classList.remove('weak','medium','strong');
+        // clear any visible errors
+        form.querySelectorAll('.error').forEach(d=>d.textContent='');
+      });
+
+      // improve UX: trim whitespace on blur
+      form.querySelectorAll('input[type=text], input[type=email], input[type=tel]').forEach(inp=>{
+        inp.addEventListener('blur', e=>{ e.target.value = e.target.value.trim(); });
+      });
+
+    })();
+  </script>
+</body>
+</html>
